@@ -9,13 +9,13 @@ Do you want Allow or Block Policies?
 
 Please enter 'allow' or 'block': block
 
-After that, the script will create 3 departments "HR", "Sales" and "Research". This is configurable by modifying the script.
+**After that, the script will create 3 departments "HR", "Sales" and "Research". This is configurable by modifying the script.**
 
-Each department will be an IB Segment.
+Each Department will be an IB Segment.
 
-If you choose "Allow" policies: HR will allow sales and Research. Research will allow HR and Sales will allow HR.
+- If you choose "Allow" policies: HR will allow sales and Research. Research will allow HR and Sales will allow HR.
 
-If you choose "Block" policies: Sales will block Research and Research will block Sales.
+- If you choose "Block" policies: Sales will block Research and Research will block Sales.
 
 **Here is a list of takes completed by the script:**
 1. Prompts the user for the tenant name and the type of policies (Allow or Block).
