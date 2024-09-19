@@ -9,6 +9,7 @@
 > What is your tenant name? IE: M365x03708457: **M365x65798550**
 >
 > Do you want Allow or Block Policies?
+> 
 > Please enter 'allow' or 'block': **block**
 
 > [!TIP]
