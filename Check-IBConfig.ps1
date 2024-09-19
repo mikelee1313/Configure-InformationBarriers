@@ -44,25 +44,14 @@ Prompts for the tenant name and retrieves Information Barrier settings and polic
 #Tenant
 $t = Read-Host "What is your tenant name, IE: M365x03708457"  
 
-#get users parameter change be changed as needed
-$users = get-user | where { $_.RecipientType -eq 'user' } | select UserPrincipalName
-
 #Connect to Services
 Connect-ExchangeOnline
-Connect-IPPSSession -UseRPSSession:$false
-Connect-SPOService -Url ('https://' + $t + '-admin.sharepoint.com')
+Connect-SPOService -Url ('https://'+ $t + '-admin.sharepoint.com')
 
 Write-Host "Checking current state of Information Barriers" -ForegroundColor Cyan
 
-#Get Segments:
-Write-Host "Getting IB Segments" -ForegroundColor Green
-Get-OrganizationSegment | fl  name, UserGroupFilter, ExoSegmentId #IPPSSession Needed
-
-Write-Host ""
-
-#Get  IB Policies
-Write-Host "Getting IB Policies" -ForegroundColor Green
-Get-InformationBarrierPolicy | FL  Name, AssignedSegment, SegmentsBlocked, SegmentsAllowed, ExoPolicyId, State, Guid , SegmentsAllowed, BlockVisibility, SegmentsBlocked, state #IPPSSession Needed
+#get users parameter change be changed as needed
+$users = get-user | where { $_.SKUAssigned -eq $true }
 
 Write-Host ""
 
@@ -125,5 +114,20 @@ foreach ($sposite in $sposites) {
 }
 
 Write-Host ""
+
+Write-Host "Signing into IPPSSession for Segment and Policy Information" -ForegroundColor Green
+
+Connect-IPPSSession -UseRPSSession:$false
+
+#Get Segments:
+Write-Host "Getting IB Segments" -ForegroundColor Green
+Get-OrganizationSegment | fl  name, UserGroupFilter, ExoSegmentId #IPPSSession Needed
+
+Write-Host ""
+
+#Get  IB Policies
+Write-Host "Getting IB Policies" -ForegroundColor Green
+Get-InformationBarrierPolicy | FL  Name, AssignedSegment, SegmentsBlocked, SegmentsAllowed, ExoPolicyId, State, Guid , SegmentsAllowed, BlockVisibility, SegmentsBlocked, state #IPPSSession Needed
+
 
 Write-Host "Done........." -ForegroundColor Cyan
