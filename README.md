@@ -1,5 +1,5 @@
 > [!WARNING]  
-> This script is for test tenants only. Do not run this in a production Farm as it will set departments for all users randomly, create Exchange Address Book policy for all users, then enable IB based the defiend departments.
+> This script is for test tenants only. Do not run this in a production Farm as it will set departments for all users randomly, create an Exchange Address Book policy for all users, then enable IB based the defiend departments.
 
 > [!TIP]
 > The script will ask you for your Tenant name and if you want "Allow" or "Block" Policies.
