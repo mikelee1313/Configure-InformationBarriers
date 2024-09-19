@@ -102,7 +102,7 @@ New-AddressBookPolicy -Name "Contoso Address Book" -AddressLists "\Offline Globa
 
 Write-Host "Done...." -ForegroundColor Cyan
 
-#Set a mailbox with the new policy
+#Assigns the new Address Book Policy to all mailboxes
 Write-Host "Assiging all Mailboxes to new Address Book policy" -ForegroundColor Green
 
 get-Mailbox | Set-Mailbox -AddressBookPolicy "Contoso Address Book" 
