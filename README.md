@@ -4,11 +4,11 @@
 > [!TIP]
 > The script will ask you for your Tenant name and if you want "Allow" or "Block" Policies.
 >
-> Example: What is your tenant name? IE: M365x03708457: M365x65798550
+> Example: What is your tenant name? IE: M365x03708457: **M365x65798550**
 >
 > Do you want Allow or Block Policies?
 >
-> Please enter 'allow' or 'block': block
+> Please enter 'allow' or 'block': **block**
 
 > [!TIP]
 > After that, the script will create 3 departments "HR", "Sales" and "Research". This is configurable by modifying the script.
