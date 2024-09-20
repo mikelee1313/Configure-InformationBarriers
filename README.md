@@ -19,6 +19,12 @@
 > If you choose "Allow" policies: HR will allow sales and Research. Research will allow HR and Sales will allow HR.
 >
 > If you choose "Block" policies: Sales will block Research and Research will block Sales.
+>
+
+Example:
+
+![image](https://github.com/user-attachments/assets/c6c1bb95-3053-45ba-8475-75e2bab38b07)
+
 
 **Here is a list of takes completed by the script:**
 
