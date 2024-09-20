@@ -42,3 +42,9 @@ Example:
 12.	Checks the current state of Information Barriers and retrieves various IB settings.
 13.	Checks IB compatibility between random users.
 14.	Retrieves IB settings for users, OneDrive sites, and SharePoint sites.
+
+
+
+> [!TIP]
+>To learn more about using Information Barriers with SharePoint see the following article.
+> https://learn.microsoft.com/en-us/purview/information-barriers-sharepoint
