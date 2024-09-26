@@ -8,12 +8,12 @@ The script performs the following tasks:
 2. Connects to various Office 365 services including Exchange Online, SharePoint Online, and IPPS.
 3. Creates an Address Book Policy to prevent an empty address book.
 4. Assigns the new Address Book Policy to all mailboxes.
-5. Enables audit logging for the tenant.
-6. Applies department attributes to users.
-7. Creates organization segments based on departments.
-8. Creates Information Barrier Policies based on the selected policy type (Allow or Block).
-9. Starts the application of Information Barrier Policies.
-10. Enables Information Barriers for SharePoint and OneDrive.
+5. Applies department attributes to users.
+6. Creates organization segments based on departments.
+7. Creates Information Barrier Policies based on the selected policy type (Allow or Block).
+8. Starts the application of Information Barrier Policies.
+9. Enables Information Barriers for SharePoint and OneDrive.
+10. Triggers Personal Site creations using"Request-SPOPersonalSite" for all users.
 11. Updates existing OneDrive sites with segments.
 12. Checks the current state of Information Barriers and retrieves various IB settings.
 13. Checks IB compatibility between random users.
@@ -71,8 +71,6 @@ while (-not $validInput) {
 Connect-ExchangeOnline
 Connect-IPPSSession -UseRPSSession:$false
 Connect-SPOService -Url ('https://' + $t + '-admin.sharepoint.com')
-#Connect-MgGraph -Scopes "User.ReadWrite.All", "Group.ReadWrite.All", "Application.ReadWrite.All"
-
 
 #Create an Address Book Policy for all Mailboxes to prevent Empty Address Book
 try {
@@ -109,10 +107,9 @@ catch {
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
-try {
-    #Create new Address Book Policy using the same parameters of the default OOTB policy.
+#Create new Address Book Policy using the same parameters of the default OOTB policy.
+try {  
     New-AddressBookPolicy -Name "Contoso Address Book" -AddressLists "\Offline Global Address List", "\All Contacts", "\All Distribution Lists", "\All Rooms", "\All Users", "\All Groups", "\Public Folders" -OfflineAddressBook $oab -GlobalAddressList $gal -RoomList "\All Rooms"
-
     Write-Host "Done...." -ForegroundColor Cyan
 }
 catch {
@@ -120,12 +117,10 @@ catch {
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
+#Assigns the new Address Book Policy to all mailboxes
 try {
-    #Assigns the new Address Book Policy to all mailboxes
     Write-Host "Assiging all Mailboxes to new Address Book policy" -ForegroundColor Green
-
     get-Mailbox | Set-Mailbox -AddressBookPolicy "Contoso Address Book" 
-
     Write-Host "Done...." -ForegroundColor Cyan
 }
 catch {
@@ -133,37 +128,7 @@ catch {
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
-
-##############
-##Config  IB##
-###############
-
-#Connect-MgGraph -Tenant ($t + '.onmicrosoft.com') -Scopes "User.Read","Application.ReadWrite.All"
-#$appId="bcf62038-e005-436d-b970-2a472f8c1982" 
-#$sp = Get-MgServicePrincipal -Filter "appid eq '$($appid)'"
-#if ($sp -eq $null) { New-MgServicePrincipal -AppId $appId }
-#Start-Process  "https://login.microsoftonline.com/common/adminconsent?client_id=$appId"
-
-#Connect-MgGraph -Tenant ($t + '.onmicrosoft.com') -Scopes "User.Read","Application.ReadWrite.All"
-#$appId="f46c682f-628c-48e6-b963-03309e34639e"
-#$sp = Get-MgServicePrincipal -Filter "appid eq '$($appid)'"
-#if ($sp -eq $null) {New-MgServicePrincipal -AppId $appId }
-#Start-Process "https://login.microsoftonline.com/common/adminconsent?client_id=$appId"
-
-#Enabling AuditLog for your Tenant
-try {
-    Write-Host "Enabling AuditLog for your Tenant" -ForegroundColor Green
-
-    Enable-OrganizationCustomization
-    Set-AdminAuditLogConfig -UnifiedAuditLogIngestionEnabled $true
-
-    Write-Host "Done..." -ForegroundColor Cyan
-}
-catch {
-    $ErrorMessage = $_.Exception.Message
-    Write-Host $ErrorMessage -ForegroundColor red
-}
-
+# Apply departments to users
 try {
     # Apply departments to users
     $departments = @('HR', 'Sales', 'Research')
@@ -176,9 +141,9 @@ try {
         $department = $departments[$i % $departments.Count]
 
         # Example: Update user department in Active Directory
-        Set-User -Identity $user -Department $department -Confirm:$false
+        Set-User -Identity $user.UserPrincipalName -Department $department -Confirm:$false
 
-        Write-Host "Updated $user with department $department"
+        Write-Host "Updated $($user.UserPrincipalName) with department $department" -ForegroundColor Green
     }
 
     Write-Host "Done..." -ForegroundColor Cyan
@@ -188,14 +153,27 @@ catch {
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
+#Provsion OneDrive Sites for all users.
 try {
-    #Create Segments based on department
-    Write-Host "Creating IB Segments" -ForegroundColor Green
+    $users = get-user | where { $_.SKUAssigned -eq $true }
+    Write-Host "Provisioning OneDrive Sites" -ForegroundColor Green
+    foreach ($user in $users) { 
+        Write-Host "Provisioning OneDrive Sites for" $user.UserPrincipalName -ForegroundColor Cyan
+        Request-SPOPersonalSite -UserEmails $user.UserPrincipalName
+        Write-Host "Done..." -ForegroundColor Cyan
+    }
+}
+catch {
+    $ErrorMessage = $_.Exception.Message
+    Write-Host $ErrorMessage -ForegroundColor red
+}
 
+#Create Segments based on department
+try {
+    Write-Host "Creating IB Segments" -ForegroundColor Green
     New-OrganizationSegment -Name "HR" -UserGroupFilter "Department -eq 'HR'"
     New-OrganizationSegment -Name "Sales" -UserGroupFilter "Department -eq 'Sales'"
     New-OrganizationSegment -Name "Research" -UserGroupFilter "Department -eq 'Research'"
-
     Write-Host "Done..." -ForegroundColor Cyan
 }
 catch {
@@ -203,9 +181,8 @@ catch {
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
-
+#Create InformationBarrier Policies
 try {
-    #Create InformationBarrier Policies
     Write-Host "Creating IB Policies" -ForegroundColor Green
 
     if ($policytype -eq 'Block') {
@@ -226,13 +203,11 @@ catch {
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
-
+#Start Policy Application
 try {
-    #Start Policy Application
     Write-Host "Starting  Information Barrier Policies Application" -ForegroundColor Green
     Start-InformationBarrierPoliciesApplication -Confirm:$false #IPPSSession Needed
     Write-Host "The job has been created but will take about 1 hour to complete." -ForegroundColor Cyan
-
     Write-Host "" -ForegroundColor Cyan
 }
 catch {
@@ -240,8 +215,8 @@ catch {
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
+#Get Policy Application
 try {
-    #Get Policy Application
     Write-Host "Gettinng Information Barrier Policies Application Status" -ForegroundColor Green
     Get-InformationBarrierPoliciesApplicationStatus  #IPPSSession Needed
     Write-Host "Done..." -ForegroundColor Cyan
@@ -251,8 +226,8 @@ catch {
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
+#Enable IB for SharePoint
 try {
-    #Enable IB for SharePoint
     Write-Host "Enabling IB for SharePoint" -ForegroundColor Green
 
     #To enable information barriers in SharePoint and OneDrive
@@ -267,94 +242,75 @@ try {
 
     #enable for Teams (IBV1 Setting)
     Set-SPOTenant -IBImplicitGroupBased $true
+    
+    Write-Host "Done..." -ForegroundColor Cyan
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
-#optional
-
-#Enable Org level Discoverability
-#Set-PolicyConfig -InformationBarrierPeopleSearchRestriction 'Disabled'
-
-#Disable Org Level Discoverability
-#Set-PolicyConfig -InformationBarrierPeopleSearchRestriction 'Enabled'
-
-
-Write-Host "Done..." -ForegroundColor Cyan
-
+#udpate OneDrive sites:
 try {
-    #udpate OneDrive sites:
     Write-Host "Stamping exsiting Onedrive sites with Segments" -ForegroundColor Green
     $updateODB = Start-SPOInformationBarriersPolicyComplianceReport -UpdateOneDriveSegments -Confirm:$false
     Write-Host "Process started but will take about 1 hour to compelte" -ForegroundColor Cyan
     Write-Host ""
-
-    Write-Host "Information Barriers has been configued but will take up to 24 hours to be fully functional!!" -ForegroundColor Green
-    Write-Host ""
-
-    Write-Host "Checking current state of Information Barriers" -ForegroundColor Cyan
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
+#Get Segments
 try {
-    #Get Segments:
     Write-Host "Getting IB Segments" -ForegroundColor Green
     Get-OrganizationSegment | fl  name, UserGroupFilter, ExoSegmentId #IPPSSession Needed
-
-    Write-Host ""
+    Write-Host "Done..." -ForegroundColor Green
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
+#Get  IB Policies
 try {
-    #Get  IB Policies
     Write-Host "Getting IB Policies" -ForegroundColor Green
     Get-InformationBarrierPolicy | FL  Name, AssignedSegment, SegmentsBlocked, SegmentsAllowed, ExoPolicyId, State, Guid , SegmentsAllowed, BlockVisibility, SegmentsBlocked, state #IPPSSession Needed
-
-    Write-Host ""
+    Write-Host "Done..." -ForegroundColor Green
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
-
+#Get Org Level Settings
 try {
-    #Get Org Level Settings
     Write-Host "Getting IB Org level settings" -ForegroundColor Green
     Get-OrganizationConfig |  fl *IB*, *info* #ExchangeOnline Needed
     Get-PolicyConfig |  fl *IB*, *info* #ExchangeOnline Needed
-
-    Write-Host ""
+    Write-Host "Done..." -ForegroundColor Green
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
+#Check SPO Settings
 try {
-    #Check SPO Settings
     Write-Host "Getting IB settings in SPO" -ForegroundColor Green
     Get-Spotenant | fl DefaultOneDriveInformationBarrierMode, InformationBarriersSuspension, IBImplicitGroupBased, ShowPeoplePickerGroupSuggestionsForIB, *bypass* #SPOService Needed
-
-    Write-Host ""
+    Write-Host "Done..." -ForegroundColor Green
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
+#check if users are compatible with each other
 try {
-    #check if users are compatible with each other:
     Write-Host "Checking random user IB compatibility" -ForegroundColor Green
-    $users = get-user | where { $_.SKUAssigned -eq $true } | select UserPrincipalName
+    $users = get-user | where { $_.SKUAssigned -eq $true }
     $randomUsers = $users | Get-Random
 
     foreach ($randomUser in $randomUsers) {
@@ -368,63 +324,57 @@ try {
         write-host "RecipientName1 is" $RecipientName1.UserPrincipalName
         write-host "RecipientName2 is" $RecipientName2.UserPrincipalName
         $randomUser = @()
-        $randomUser2 = @() 
+        $randomUser2 = @()
+        Write-Host "Done..." -ForegroundColor Green
     }
-
-    Write-Host ""
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
-
+#get IB Settings per user
 try {
-    #get IB Settings per user
     Write-Host "Getting IB per user" -ForegroundColor Green
     $users = get-user | where { $_.SKUAssigned -eq $true }
     foreach ($user in $users) { 
         Get-Recipient -Identity $user.UserPrincipalName | fl DisplayName, name, InformationBarrierSegments, WhenIBSegmentChanged, Department, AddressBookPolicy
     }
-
-    Write-Host ""
+    Write-Host "Done..." -ForegroundColor Green
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
-
+#get IB Settings per ODB Site 
 try {
-    #get IB Settings per ODB Site 
     Write-Host "Getting IB Settings in OneDrive Sites" -ForegroundColor Green
     $odburls = Get-SPOSite -IncludePersonalSite $true -Limit all -Filter "Url -like '-my.sharepoint.com/personal/'" | Select -ExpandProperty Url
     foreach ($odburl in $odburls) { 
         get-sposite -Identity $odburl | FL Owner, URL, InformationSegment, InformationBarriersMode
     }
 
-    Write-Host ""
+    Write-Host "Done..." -ForegroundColor Green
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
+#get IB Settings SPO Site
 try {
-    #get IB Settings SPO Site
     Write-Host "Getting IB Settings in OneDrive Sites" -ForegroundColor Green
     $sposites = Get-SPOSite -IncludePersonalSite $false -Limit all | Select -ExpandProperty Url
     foreach ($sposite in $sposites) { 
         get-sposite -Identity $sposite | FL Owner, URL, InformationSegment, InformationBarriersMode
     }
 
-    Write-Host "" 
+    Write-Host "Done..." -ForegroundColor Green
 }
 catch {
     $ErrorMessage = $_.Exception.Message
     Write-Host $ErrorMessage -ForegroundColor red
 }
 
-
-Write-Host "Done........." -ForegroundColor Cyan
 Write-Host "Information Barriers have been setup for $T, it could take 24 hours to take full effect." -ForegroundColor Green
