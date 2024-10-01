@@ -107,7 +107,7 @@ foreach ($odburl in $odburls) {
 Write-Host ""
 
 #get IB Settings SPO Site
-Write-Host "Getting IB Settings in OneDrive Sites" -ForegroundColor Green
+Write-Host "Getting IB Settings in SPO Sites" -ForegroundColor Green
 $sposites = Get-SPOSite -IncludePersonalSite $false -Limit all | Select -ExpandProperty Url
 foreach ($sposite in $sposites) { 
     get-sposite -Identity $sposite | FL Owner, URL, InformationSegment, InformationBarriersMode
