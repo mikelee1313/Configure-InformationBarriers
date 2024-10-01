@@ -66,19 +66,26 @@ while (-not $validInput) {
     }
 }
 
-
 #Connect to Services
 Connect-ExchangeOnline
 Connect-IPPSSession -UseRPSSession:$false
 Connect-SPOService -Url ('https://' + $t + '-admin.sharepoint.com')
 
-#Create an Address Book Policy for all Mailboxes to prevent Empty Address Book
+#Enable Organization Customization
 try {
-    Write-Host "Adding role 'Address Lists' to 'Organization Management' to allow for Address Book Management with the GA Account" -ForegroundColor Green
-    Enable-OrganizationCustomization
-    New-ManagementRoleAssignment -SecurityGroup "Organization Management" -Role "Address Lists"
-    Write-Host "Done...." -ForegroundColor Cyan
-    Write-Host "After adding role 'Address Lists' to 'Organization Management', reconnecting to Exchange Online" -ForegroundColor Yellow
+    $IsDehydrated = Get-OrganizationConfig | Select-Object IsDehydrated
+    if ($IsDehydrated.IsDehydrated -eq $true) {
+        Write-Host "Enabling Organization Customization" -ForegroundColor Green
+        Enable-OrganizationCustomization
+    }
+
+    #Create an Address Book Policy for all Mailboxes to prevent Empty Address Book
+    if ($IsDehydrated.IsDehydrated -eq $false) {
+        Write-Host "Adding role 'Address Lists' to 'Organization Management' to allow for Address Book Management with the GA Account" -ForegroundColor Green
+        New-ManagementRoleAssignment -SecurityGroup "Organization Management" -Role "Address Lists"
+        Write-Host "Done...." -ForegroundColor Cyan
+        Write-Host "After adding role 'Address Lists' to 'Organization Management', reconnecting to Exchange Online" -ForegroundColor Yellow
+    }
 }
 catch {
     $ErrorMessage = $_.Exception.Message
