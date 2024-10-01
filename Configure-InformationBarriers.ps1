@@ -75,6 +75,7 @@ Connect-SPOService -Url ('https://' + $t + '-admin.sharepoint.com')
 #Create an Address Book Policy for all Mailboxes to prevent Empty Address Book
 try {
     Write-Host "Adding role 'Address Lists' to 'Organization Management' to allow for Address Book Management with the GA Account" -ForegroundColor Green
+    Enable-OrganizationCustomization
     New-ManagementRoleAssignment -SecurityGroup "Organization Management" -Role "Address Lists"
     Write-Host "Done...." -ForegroundColor Cyan
     Write-Host "After adding role 'Address Lists' to 'Organization Management', reconnecting to Exchange Online" -ForegroundColor Yellow
