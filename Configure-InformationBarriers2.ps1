@@ -262,9 +262,7 @@ function Create-IBPolicies {
         Log-Message "Creating IB Policies"
     
         if ($policytype -eq 'Block') {
-            $Blockdepartments = (Read-Host "Which Departments Block each other from 
-     '$global:departmentsArray'  
-     (e.g.Banking, Research)").Split(',').Trim()
+            $Blockdepartments = (Read-Host "Which Departments Block each other from '$global:departmentsArray' (e.g.Banking, Research)").Split(',').Trim()
 
             foreach ($dept1 in  $Blockdepartments) {
                 foreach ($dept2 in $Blockdepartments) {
@@ -276,27 +274,24 @@ function Create-IBPolicies {
                 }
             }
         }
-        elseif ($policytype -eq 'Allow') {
-            $Allowdepartments = (Read-Host "Which Departments Allow each other from 
-     '$global:departmentsArray'  
-     (e.g.Corp, Research)").Split(',').Trim()
+        if ($policytype -eq 'Allow') {
+            $Allowdepartments = (Read-Host "Which Departments Allow each other from '$global:departmentsArray'(e.g.Corp, Research)").Split(',').Trim()
      
-            foreach ($dept1 in  $Blockdepartments) {
-                foreach ($dept2 in $Blockdepartments) {
+            foreach ($dept1 in  $Allowdepartments) {
+                foreach ($dept2 in $Allowdepartments) {
                     if ($dept1 -ne $dept2) {
-                        New-InformationBarrierPolicy -Name "$dept1 - Allows - $dept2" -AssignedSegment "$dept1" -SegmentsAllowed "$dept2" -State  "active"
+                        New-InformationBarrierPolicy -Name "$dept1 - Allows - $dept2" -AssignedSegment "$dept1" -SegmentsAllowed "$dept1, $dept2" -State  "active"
                         Write-Host "$dept1 Allows $dept2 policy created."
                         Log-Message "$dept1 Allows $dept2 policy created."
                     }
                 }
             }
-
-            catch {
-                Log-Message "Error creating IB Policies: $_" "ERROR"
-                Write-Host "Error creating IB Policies: $_" -ForegroundColor Red
-            }
         }
-
+    } catch {
+        Log-Message "Error creating IB Policies: $_" "ERROR"
+        Write-Host "Error creating IB Policies: $_" -ForegroundColor Red
+    }
+}
         function Start-PolicyApplication {
             try {
                 Write-Host "Starting  Information Barrier Policies Application" -ForegroundColor Green
