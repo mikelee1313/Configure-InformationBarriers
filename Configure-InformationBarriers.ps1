@@ -72,6 +72,14 @@ while (-not $validInput) {
 #Connect to Services
 Connect-ExchangeOnline
 Connect-IPPSSession -UseRPSSession:$false
+
+# SPO Management Shell module
+    If($PSVersionTable.PSVersion.Major -gt 5){
+        Import-Module Microsoft.Online.SharePoint.PowerShell -UseWindowsPowerShell
+    }
+    else{
+        Import-Module Microsoft.Online.SharePoint.PowerShell
+    }
 Connect-SPOService -Url ('https://' + $t + '-admin.sharepoint.com')
 
 #Enable Organization Customization
