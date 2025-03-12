@@ -46,7 +46,15 @@ $t = Read-Host "What is your tenant name, IE: M365x03708457"
 
 #Connect to Services
 Connect-ExchangeOnline
-Connect-SPOService -Url ('https://'+ $t + '-admin.sharepoint.com')
+
+# SPO Management Shell module
+    If($PSVersionTable.PSVersion.Major -gt 5){
+        Import-Module Microsoft.Online.SharePoint.PowerShell -UseWindowsPowerShell
+    }
+    else{
+        Import-Module Microsoft.Online.SharePoint.PowerShell
+    }
+Connect-SPOService -Url ('https://' + $t + '-admin.sharepoint.com')
 
 Write-Host "Checking current state of Information Barriers" -ForegroundColor Cyan
 
