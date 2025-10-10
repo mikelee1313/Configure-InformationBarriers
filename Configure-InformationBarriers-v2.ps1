@@ -123,7 +123,7 @@ param(
     [string[]]$BlockedDepartmentPairs = @('Sales', 'Research'),
 
     [Parameter(Mandatory = $false, HelpMessage = "For Allow policies: Departments that can communicate with the neutral department")]
-    [string[]]$AllowedWithNeutralDepartments = @('HR'),
+    [string[]]$AllowedWithNeutralDepartments = @('Sales', 'Research'),
 
     [Parameter(Mandatory = $false)]
     [string]$LogPath,
