@@ -279,10 +279,10 @@ function Connect-Services {
         # Import SharePoint Online module
         Write-Log "Loading SharePoint Online module..." -Level Info
         if ($PSVersionTable.PSVersion.Major -gt 5) {
-            Import-Module Microsoft.Online.SharePoint.PowerShell -UseWindowsPowerShell -ErrorAction Stop
+            Import-Module Microsoft.Online.SharePoint.PowerShell -UseWindowsPowerShell -DisableNameChecking -ErrorAction Stop
         }
         else {
-            Import-Module Microsoft.Online.SharePoint.PowerShell -ErrorAction Stop
+            Import-Module Microsoft.Online.SharePoint.PowerShell -DisableNameChecking -ErrorAction Stop
         }
         
         # Connect to SharePoint Online
