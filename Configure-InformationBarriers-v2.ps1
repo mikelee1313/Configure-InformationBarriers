@@ -268,12 +268,12 @@ function Connect-Services {
     try {
         # Connect to Exchange Online
         Write-Log "Connecting to Exchange Online..." -Level Info
-        Connect-ExchangeOnline -ErrorAction Stop
+        Connect-ExchangeOnline -ShowBanner:$false -ErrorAction Stop
         Write-Log "Successfully connected to Exchange Online." -Level Success
         
         # Connect to IPPS Session
         Write-Log "Connecting to Security & Compliance Center..." -Level Info
-        Connect-IPPSSession -ErrorAction Stop
+        Connect-IPPSSession -ShowBanner:$false -ErrorAction Stop
         Write-Log "Successfully connected to Security & Compliance Center." -Level Success
         
         # Import SharePoint Online module
@@ -435,12 +435,12 @@ function Test-AddressBookPolicyPermission {
                         try {
                             Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue
                             Start-Sleep -Seconds 5
-                            Connect-ExchangeOnline -ErrorAction Stop
+                            Connect-ExchangeOnline -ShowBanner:$false -ErrorAction Stop
                             Write-Log "Reconnected to Exchange Online." -Level Success
                             
                             # Reconnect to IPPS Session (required for IB cmdlets)
                             Write-Log "Reconnecting to Security & Compliance Center..." -Level Info
-                            Connect-IPPSSession -ErrorAction Stop
+                            Connect-IPPSSession -ShowBanner:$false -ErrorAction Stop
                             Write-Log "Reconnected to Security & Compliance Center." -Level Success
                         }
                         catch {
@@ -465,12 +465,12 @@ function Test-AddressBookPolicyPermission {
                             Import-Module ExchangeOnlineManagement -Force -ErrorAction Stop
                             
                             Write-Log "Reconnecting to Exchange Online..." -Level Info
-                            Connect-ExchangeOnline -ErrorAction Stop
+                            Connect-ExchangeOnline -ShowBanner:$false -ErrorAction Stop
                             Write-Log "Module reloaded and reconnected successfully." -Level Success
                             
                             # Reconnect to IPPS Session (required for IB cmdlets)
                             Write-Log "Reconnecting to Security & Compliance Center..." -Level Info
-                            Connect-IPPSSession -ErrorAction Stop
+                            Connect-IPPSSession -ShowBanner:$false  -ErrorAction Stop
                             Write-Log "Reconnected to Security & Compliance Center." -Level Success
                         }
                         catch {
@@ -520,12 +520,12 @@ function Wait-ForRoleAssignmentPropagation {
     try {
         Disconnect-ExchangeOnline -Confirm:$false -ErrorAction SilentlyContinue
         Start-Sleep -Seconds 5
-        Connect-ExchangeOnline -ErrorAction Stop
+        Connect-ExchangeOnline -ShowBanner:$false -ErrorAction Stop
         Write-Log "Reconnected to Exchange Online successfully." -Level Success
         
         # Reconnect to IPPS Session (required for IB cmdlets like Get-OrganizationSegment)
         Write-Log "Reconnecting to Security & Compliance Center..." -Level Info
-        Connect-IPPSSession -ErrorAction Stop
+        Connect-IPPSSession -ShowBanner:$false -ErrorAction Stop
         Write-Log "Reconnected to Security & Compliance Center successfully." -Level Success
     }
     catch {
