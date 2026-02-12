@@ -693,7 +693,7 @@ try {
                     Write-Log "Please follow these steps in the Exchange Admin Center:" -Level Info
                     Write-Log "  1. Open https://admin.exchange.microsoft.com/#/adminRoles" -Level Info
                     Write-Log "  2. Click on 'Organization Management' role group" -Level Info
-                    Write-Log "  3. Click 'Edit' or 'Manage roles'" -Level Info
+                    Write-Log "  3. Click 'Permissions'" -Level Info
                     Write-Log "  4. Add the 'Address Lists' role if not already present" -Level Info
                     Write-Log "  5. Save the changes" -Level Info
                     Write-Log "  6. Wait 2-3 minutes for the role to propagate" -Level Info
