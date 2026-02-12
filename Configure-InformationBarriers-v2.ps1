@@ -273,7 +273,7 @@ function Connect-Services {
         
         # Connect to IPPS Session
         Write-Log "Connecting to Security & Compliance Center..." -Level Info
-        Connect-IPPSSession -UseRPSSession:$false -ErrorAction Stop
+        Connect-IPPSSession -ErrorAction Stop
         Write-Log "Successfully connected to Security & Compliance Center." -Level Success
         
         # Import SharePoint Online module
