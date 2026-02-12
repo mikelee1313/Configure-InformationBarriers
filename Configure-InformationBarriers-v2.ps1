@@ -440,7 +440,7 @@ function Test-AddressBookPolicyPermission {
                             
                             # Reconnect to IPPS Session (required for IB cmdlets)
                             Write-Log "Reconnecting to Security & Compliance Center..." -Level Info
-                            Connect-IPPSSession -UseRPSSession:$false -ErrorAction Stop
+                            Connect-IPPSSession -ErrorAction Stop
                             Write-Log "Reconnected to Security & Compliance Center." -Level Success
                         }
                         catch {
@@ -470,7 +470,7 @@ function Test-AddressBookPolicyPermission {
                             
                             # Reconnect to IPPS Session (required for IB cmdlets)
                             Write-Log "Reconnecting to Security & Compliance Center..." -Level Info
-                            Connect-IPPSSession -UseRPSSession:$false -ErrorAction Stop
+                            Connect-IPPSSession -ErrorAction Stop
                             Write-Log "Reconnected to Security & Compliance Center." -Level Success
                         }
                         catch {
@@ -525,7 +525,7 @@ function Wait-ForRoleAssignmentPropagation {
         
         # Reconnect to IPPS Session (required for IB cmdlets like Get-OrganizationSegment)
         Write-Log "Reconnecting to Security & Compliance Center..." -Level Info
-        Connect-IPPSSession -UseRPSSession:$false -ErrorAction Stop
+        Connect-IPPSSession -ErrorAction Stop
         Write-Log "Reconnected to Security & Compliance Center successfully." -Level Success
     }
     catch {
