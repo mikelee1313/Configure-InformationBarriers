@@ -852,7 +852,7 @@ Write-Host ""
 
 Write-Host "🔗 Connecting to Security & Compliance Center..." -ForegroundColor Yellow
 try {
-    Connect-IPPSSession -UseRPSSession:$false -ShowBanner:$false
+    Connect-IPPSSession -ShowBanner:$false
     Write-Host "  ✅ Successfully connected to IPPSSession" -ForegroundColor Green
 }
 catch {
