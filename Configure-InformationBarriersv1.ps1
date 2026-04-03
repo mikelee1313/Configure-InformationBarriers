@@ -71,31 +71,30 @@ to use the sample scripts or documentation, even if Microsoft has been advised o
 - Ensure that the necessary modules (e.g., ExchangeOnlineManagement, Microsoft.Online.SharePoint.PowerShell) are installed.
 
 .EXAMPLE
-.\Configure-InformationBarriersv1.ps1 -TenantName "M365x03708457" -PolicyType "Block"
+.\Configure-InformationBarriers.ps1 -TenantName "M365x03708457" -PolicyType "Block"
 Configures Information Barriers with Block policies. HR (neutral) can communicate with all, while Sales and Research block each other.
 
 .EXAMPLE
-.\Configure-InformationBarriersv1.ps1 -TenantName "contoso" -PolicyType "Allow" -NeutralDepartment "HR"
+.\Configure-InformationBarriers.ps1 -TenantName "contoso" -PolicyType "Allow" -NeutralDepartment "HR"
 Configures Allow policies where HR can communicate with Sales and Research, but Sales and Research cannot communicate with each other.
 
 .EXAMPLE
-.\Configure-InformationBarriersv1.ps1 -PolicyType "Block" -Departments @('HR', 'Sales', 'Research', 'Legal') -NeutralDepartment "HR" -BlockedDepartmentPairs @('Sales', 'Research', 'Legal')
+.\Configure-InformationBarriers.ps1 -PolicyType "Block" -Departments @('HR', 'Sales', 'Research', 'Legal') -NeutralDepartment "HR" -BlockedDepartmentPairs @('Sales', 'Research', 'Legal')
 Creates segments for 4 departments where HR is neutral, and Sales, Research, and Legal all block each other.
 
 .EXAMPLE
-.\Configure-InformationBarriersv1.ps1 -PolicyType "Allow" -NeutralDepartment "Management" -AllowedWithNeutralDepartments @('Finance', 'IT')
+.\Configure-InformationBarriers.ps1 -PolicyType "Allow" -NeutralDepartment "Management" -AllowedWithNeutralDepartments @('Finance', 'IT')
 Management department can communicate with Finance and IT, but Finance and IT cannot communicate with each other.
 
 .EXAMPLE
-.\Configure-InformationBarriersv1.ps1 -Verbose
+.\Configure-InformationBarriers.ps1 -Verbose
 Runs the script with verbose output for detailed logging.
 #>
 
 [CmdletBinding(SupportsShouldProcess = $true)]
 param(
     [Parameter(Mandatory = $false, HelpMessage = "Enter the tenant name (e.g., M365x03708457)")]
-    [ValidateNotNullOrEmpty()]
-    [string]$TenantName = 'a830edad9050849ibtest2',
+    [string]$TenantName,
 
     [Parameter(Mandatory = $false, HelpMessage = "Select policy type: Allow or Block")]
     [ValidateSet('Allow', 'Block', IgnoreCase = $true)]
@@ -210,13 +209,14 @@ function Test-Prerequisites {
     
     $missingModules = @()
     $outdatedModules = @()
+    $installFailures = @()
     
     foreach ($module in $requiredModules) {
         $installedModule = Get-Module -Name $module.Name -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1
         
         if (-not $installedModule) {
-            $missingModules += $module.Name
-            Write-Log "Module '$($module.Name)' is not installed." -Level Error
+            $missingModules += $module
+            Write-Log "Module '$($module.Name)' is not installed." -Level Warning
         }
         elseif ($installedModule.Version -lt [version]$module.MinVersion) {
             $outdatedModules += "$($module.Name) (Installed: $($installedModule.Version), Required: $($module.MinVersion))"
@@ -228,9 +228,26 @@ function Test-Prerequisites {
     }
     
     if ($missingModules.Count -gt 0) {
-        Write-Log "Missing required modules: $($missingModules -join ', ')" -Level Error
-        Write-Log "Install missing modules using: Install-Module -Name <ModuleName> -Scope CurrentUser" -Level Info
-        throw "Prerequisites check failed. Missing required modules."
+        Write-Log "Attempting to install $($missingModules.Count) missing module(s)..." -Level Info
+        
+        foreach ($module in $missingModules) {
+            Write-Log "Installing module '$($module.Name)' (minimum version $($module.MinVersion))..." -Level Info
+            try {
+                Install-Module -Name $module.Name -MinimumVersion $module.MinVersion -Scope CurrentUser -Force -AllowClobber -Repository PSGallery -ErrorAction Stop
+                $installed = Get-Module -Name $module.Name -ListAvailable | Sort-Object Version -Descending | Select-Object -First 1
+                Write-Log "Successfully installed '$($module.Name)' version $($installed.Version)." -Level Success
+            }
+            catch {
+                $installFailures += $module.Name
+                Write-Log "Failed to install '$($module.Name)': $($_.Exception.Message)" -Level Error
+            }
+        }
+        
+        if ($installFailures.Count -gt 0) {
+            Write-Log "Could not install the following modules: $($installFailures -join ', ')" -Level Error
+            Write-Log "Install them manually using: Install-Module -Name <ModuleName> -Scope CurrentUser" -Level Info
+            throw "Prerequisites check failed. Could not install required modules: $($installFailures -join ', ')"
+        }
     }
     
     if ($outdatedModules.Count -gt 0) {
